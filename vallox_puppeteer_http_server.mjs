@@ -15,7 +15,7 @@ let last_reload = Date.now();
 
 function reload_necessary() {
   const delta = Date.now() - last_reload;
-  if (delta > 60 * 1000) {
+  if (delta > 100 * 1000) {
     last_reload = Date.now();
     console.log("Reload necessary!")
     return true;
