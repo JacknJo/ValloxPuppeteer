@@ -1,12 +1,12 @@
 # ValloxPuppeteer
 ## Scope
-This component is intended to be run on a raspberry pi or similiar, to interfear with the web-app of vallox in a headless manner. The reaspberry then provides a webserver to control the webapp in a remote fashion.
+This component is intended to be run on a raspberry pi or similiar, to interfere with the web-app of vallox in a headless manner. The reaspberry then provides a webserver to control the webapp in a remote fashion. I use it to control my Vallox MV510 from the Loxone Miniserver without any additional hardware (except the raspberry of cause).
 
 ## Puppeteer
-This is a headless test-suite for webapps, that allows interfering with the dom and user elements, without actually clicking them. Due to this technology the solution presented here is extremely fittet to this exact version of the software. Any future update will most certainly break the module!
+This is a headless test-suite for webapps, that allows interfering with the dom and user elements, without actually clicking them. Due to this technology the solution presented here is extremely fitted to this exact version of the software. Any future update to the webserver of the Vallox MV510 will most certainly break the module!
 
 ## Caveats
-Setting up the headless enviornment, loading and parsing the page on the reaspberry takes some time. The page is reloaded not each time for every request, but is cached for a certain time, to ensure consecutive requests are handled correctly and only the first one takes longer.
+Setting up the headless enviornment, loading and parsing the page on the reaspberry takes some time. The page is not reloaded each time for every request, but is cached for a certain time, to ensure consecutive requests are handled correctly and only the first one takes longer (5-10 seconds - ensure you have a large timeout setting on the requesting side).
 
 ## Setup
 The tool was developed with the latest version of nodejs. I honestly have no idea what the minimal supported version would be. Just download the latest nodejs from https://nodejs.org/en/download, extract it and add it's `/bin` folder to your `PATH`.
