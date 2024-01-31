@@ -16,7 +16,7 @@ The tool was developed with the latest version of nodejs. I honestly have no ide
 sudo apt install chromium-browser chromium-codecs-ffmpeg
 
 # Checkout the project
-git clone https://JacknJo/ValloxPuppeteer
+git clone https://github.com/JacknJo/ValloxPuppeteer
 cd ValloxPuppeteer
 npm install
 node vallox_puppeteer_http_server.mjs <IP-OF-RASPBERRY> <PORT-ON-RASPBERRY> <IP-OR-HOSTNAME-OF-VALLOX>
