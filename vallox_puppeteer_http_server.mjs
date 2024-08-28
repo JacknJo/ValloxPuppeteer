@@ -15,7 +15,7 @@ let last_reload = Date.now();
 
 function reload_necessary() {
   const delta = Date.now() - last_reload;
-  if (delta > 100 * 1000) {
+  if (delta > 30 * 1000) {
     last_reload = Date.now();
     console.log("Reload necessary!")
     return true;
@@ -34,6 +34,7 @@ async function timeit(callable) {
 async function get_active_mode(page) {
   if (reload_necessary()) {
     await page.reload({ waitUntil: 'networkidle0' });
+    await new Promise(resolve => setTimeout(resolve, 3000));
   }
   const [currentMode] = await page.$x('//div[contains(@class, "dashboard-profile-radio-fan") and contains(@class, "dashboard-profile-radioactive")]');
   const dashboard_id = await currentMode.evaluate(el => el.getAttribute("dashboard"))
@@ -52,6 +53,7 @@ async function set_active_mode(page, mode) {
 async function get_sensors(page) {
   if (reload_necessary()) {
     await page.reload({ waitUntil: 'networkidle0' });
+    await new Promise(resolve => setTimeout(resolve, 3000));
   }
   const [humidityElement] = await page.$x('//div[contains(@class, "dashboard-align-right")]/div[contains(@class, "dashboard-view-viewer") and contains(@l10n-path, "info.details.rh.sensors.0")]/p');
   const humidity = await humidityElement.evaluate(el => el.textContent)
@@ -63,6 +65,7 @@ async function get_sensors(page) {
 async function get_fan_speed(page) {
   if (reload_necessary()) {
     await page.reload({ waitUntil: 'networkidle0' });
+    await new Promise(resolve => setTimeout(resolve, 3000));
   }
   const [fanSpeedElement] = await page.$x('//div[contains(@class, "dashboard-align-right")]/div[contains(@class, "dashboard-view-viewer") and contains(@l10n-path, "dashboard.profile.fanspeed")]/p');
   const fanSpeed = await fanSpeedElement.evaluate(el => el.textContent);
@@ -72,6 +75,7 @@ async function get_fan_speed(page) {
 async function get_air_temperature(page) {
   if (reload_necessary()) {
     await page.reload({ waitUntil: 'networkidle0' });
+    await new Promise(resolve => setTimeout(resolve, 3000));
   }
   const [indoorAirElement] = await page.$x('//div[contains(@class, "dashboard-align-center")]/div[contains(@class, "dashboard-now-viewer") and contains(@l10n-path, "dashboard.now.indoor")]/p');
   const indoor = await indoorAirElement.evaluate(el => el.textContent);
@@ -87,6 +91,7 @@ async function get_air_temperature(page) {
 async function get_target_temperature(page) {
   if (reload_necessary()) {
     await page.reload({ waitUntil: 'networkidle0' });
+    await new Promise(resolve => setTimeout(resolve, 3000));
   }
 
   const active_mode = await get_active_mode(page)
@@ -101,6 +106,7 @@ async function get_target_temperature(page) {
 async function set_target_temperature(page, temperature) {
   if (reload_necessary()) {
     await page.reload({ waitUntil: 'networkidle0' });
+    await new Promise(resolve => setTimeout(resolve, 3000));
   }
 
   // Select active mode.
