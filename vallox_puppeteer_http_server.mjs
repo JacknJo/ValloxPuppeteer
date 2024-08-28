@@ -31,11 +31,20 @@ async function timeit(callable) {
   return ret;
 }
 
-async function get_active_mode(page) {
+// Define a sleep function that returns a promise
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function reload_if_necessary() {
   if (reload_necessary()) {
     await page.reload({ waitUntil: 'networkidle0' });
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    await sleep(1000);
   }
+}
+
+async function get_active_mode(page) {
+  await reload_if_necessary();
   const [currentMode] = await page.$x('//div[contains(@class, "dashboard-profile-radio-fan") and contains(@class, "dashboard-profile-radioactive")]');
   const dashboard_id = await currentMode.evaluate(el => el.getAttribute("dashboard"))
 
@@ -51,10 +60,7 @@ async function set_active_mode(page, mode) {
 }
 
 async function get_sensors(page) {
-  if (reload_necessary()) {
-    await page.reload({ waitUntil: 'networkidle0' });
-    await new Promise(resolve => setTimeout(resolve, 3000));
-  }
+  await reload_if_necessary();
   const [humidityElement] = await page.$x('//div[contains(@class, "dashboard-align-right")]/div[contains(@class, "dashboard-view-viewer") and contains(@l10n-path, "info.details.rh.sensors.0")]/p');
   const humidity = await humidityElement.evaluate(el => el.textContent)
   const [co2Element] = await page.$x('//div[contains(@class, "dashboard-align-right")]/div[contains(@class, "dashboard-view-viewer") and contains(@l10n-path, "info.details.co2.sensors.0")]/p');
@@ -63,20 +69,14 @@ async function get_sensors(page) {
 }
 
 async function get_fan_speed(page) {
-  if (reload_necessary()) {
-    await page.reload({ waitUntil: 'networkidle0' });
-    await new Promise(resolve => setTimeout(resolve, 3000));
-  }
+  await reload_if_necessary();
   const [fanSpeedElement] = await page.$x('//div[contains(@class, "dashboard-align-right")]/div[contains(@class, "dashboard-view-viewer") and contains(@l10n-path, "dashboard.profile.fanspeed")]/p');
   const fanSpeed = await fanSpeedElement.evaluate(el => el.textContent);
   return fanSpeed;
 }
 
 async function get_air_temperature(page) {
-  if (reload_necessary()) {
-    await page.reload({ waitUntil: 'networkidle0' });
-    await new Promise(resolve => setTimeout(resolve, 3000));
-  }
+  await reload_if_necessary();
   const [indoorAirElement] = await page.$x('//div[contains(@class, "dashboard-align-center")]/div[contains(@class, "dashboard-now-viewer") and contains(@l10n-path, "dashboard.now.indoor")]/p');
   const indoor = await indoorAirElement.evaluate(el => el.textContent);
   const [outdoorAirElement] = await page.$x('//div[contains(@class, "dashboard-align-center")]/div[contains(@class, "dashboard-now-viewer") and contains(@l10n-path, "dashboard.now.outdoor")]/p');
@@ -89,10 +89,7 @@ async function get_air_temperature(page) {
 }
 
 async function get_target_temperature(page) {
-  if (reload_necessary()) {
-    await page.reload({ waitUntil: 'networkidle0' });
-    await new Promise(resolve => setTimeout(resolve, 3000));
-  }
+  await reload_if_necessary();
 
   const active_mode = await get_active_mode(page)
   const [activeModeButton] = await page.$x('//div[contains(@class, "dashboard-left")]/div[contains(@id, "profileradios")]/div[contains(@class, "dashboard-io-button") and contains(@dashboard, "' + active_mode + '")]')
@@ -103,11 +100,35 @@ async function get_target_temperature(page) {
   return targetSupplyTemperature;
 }
 
+async function set_target_fan_speed(page, fan_speed) {
+  await reload_if_necessary();
+
+  // Select active mode.
+  const active_mode = await get_active_mode(page)
+  const [activeModeButton] = await page.$x('//div[contains(@class, "dashboard-left")]/div[contains(@id, "profileradios")]/div[contains(@class, "dashboard-io-button") and contains(@dashboard, "' + active_mode + '")]')
+  await activeModeButton.click();
+
+  // Go to edit mode.
+  const [dashboardEditElement] = await page.$x('//div[contains(@class, "dashboard-view-placeholder") and contains(@profile, ' + active_mode + ')]//div[contains(@class, "dashboard-edit-limit-0") and contains(@dashboard, "-edit")]');
+  await dashboardEditElement.click();
+
+  // Enter the slider value.
+  const [fanSpeedSettingElement] = await page.$x('//div[contains(@class, "dashboard-view-placeholder") and contains(@profile, ' + active_mode + ')]//div[contains(@class, "dashboard-slider") and contains(@l10n-path, ".fanspeed")]//div[contains(@class, "ui-slider")]/input');
+  await page.evaluate((fan_speed, element) => {
+    element.value = fan_speed;
+  }, fan_speed, fanSpeedSettingElement)
+  await fanSpeedSettingElement.click()
+
+  // Save the slider value.
+  const [saveEditElement] = await page.$x('//div[contains(@class, "dashboard-view-placeholder") and contains(@profile, ' + active_mode + ')]//div[contains(@class, "dashboard-dialog-ok")]');
+  await saveEditElement.click();
+
+  return fan_speed;
+}
+
+
 async function set_target_temperature(page, temperature) {
-  if (reload_necessary()) {
-    await page.reload({ waitUntil: 'networkidle0' });
-    await new Promise(resolve => setTimeout(resolve, 3000));
-  }
+  await reload_if_necessary();
 
   // Select active mode.
   const active_mode = await get_active_mode(page)
@@ -148,6 +169,7 @@ const requestListener = async function (req, res) {
     ['PUT', RegExp("^/mode/([0-3])"), async (req, res, args) => { res.end('' + await timeit(() => set_active_mode(page, args[1]))) }],
     ['GET', RegExp("^/mode$"), async (req, res) => { res.end('' + await timeit(() => get_active_mode(page))) }],
     ['PUT', RegExp("^/target_temperature/(\\d+)"), async (req, res, args) => { res.end('' + await timeit(() => set_target_temperature(page, args[1]))) }],
+    ['PUT', RegExp("^/target_fan_speed/(\\d+)"), async (req, res, args) => { res.end('' + await timeit(() => set_target_fan_speed(page, args[1]))) }],
     ['GET', RegExp("^/target_temperature$"), async (req, res) => { res.end('' + await timeit(() => get_target_temperature(page))) }],
     ['GET', RegExp("^/fan_speed$"), async (req, res) => { res.end('' + await timeit(() => get_fan_speed(page))) }],
     ['GET', RegExp("^/air_temperature$"), async (req, res) => { res.end('' + await timeit(() => get_air_temperature(page))) }],
