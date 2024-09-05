@@ -5,8 +5,9 @@ import http from 'http'
 
 // Setup globals.
 const browser = await puppeteer.launch({
-  headless: 'new',
   executablePath: "/usr/bin/chromium-browser",
+  userDataDir: "/tmp/puppeteer_profile",
+  headless: true
 });
 
 const page = await browser.newPage();
