@@ -6,7 +6,7 @@ Wants=network-online.target
 [Service]
 Restart=on-failure
 Type=simple
-ExecStart=/home/pi/.local/share/node/latest/bin/node /home/pi/ValloxPuppeteer/vallox_puppeteer_http_server.mjs 192.168.178.35 6000 192.168.178.39
+ExecStart=/home/pi/ValloxPuppeteer/venv/bin/flask --app flaskr run --host=0.0.0.0 --port 6000
 User=pi
 Environment=
 WorkingDirectory=/home/pi/ValloxPuppeteer
